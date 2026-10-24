@@ -3,11 +3,14 @@ import candlesImg from './assets/candles/candles.jpg'
 import coupleImg from './assets/couple.jpg'
 import windowImg from './assets/candles/window.jpg'
 import beginningImg from './assets/beginning.jpg'
+import diplomasImg from './assets/diplomas.jpg'
+import aquariumImg from './assets/aquarium.jpg'
 import proposalImg from './assets/proposal.jpg'
 import familyImg from './assets/family.jpg'
 import townImg from './assets/candles/town.jpg'
 import tableImg from './assets/candles/table.jpg'
 import Snow from './Snow'
+import StoryCard, { type Slide } from './StoryCard'
 import RsvpForm from './RsvpForm'
 import { playCandleSound, toggleSound, unlockAudio, useSoundOn } from './audio'
 import { DINNER, REGISTRATION, calendarHref, countdown, opensInNewTab, routeHref } from './event'
@@ -68,27 +71,34 @@ const Candle = () => (
   </div>
 )
 
-const WINTERS: { img: string; n: string; text: string; style?: CSSProperties }[] = [
+// Story strip: each card cycles its photos (every 6s) / videos, toned warm so the strip reads as one
+const WINTERS: { n: string; text: string; slides: Slide[] }[] = [
   {
-    // black-and-white selfie: framed on both faces, warm-tinted like an old photo to sit with the other two
-    img: beginningImg,
     n: 'I',
     text: 'Зимой началась наша история',
-    style: { backgroundPosition: '77% 40%', filter: 'sepia(.45) brightness(.78) contrast(1.08)' },
+    slides: [
+      // mostly sky in the original — zoomed in on the two of them
+      { img: diplomasImg, style: { backgroundSize: '170% auto', backgroundPosition: '65% 79%', filter: 'sepia(.25) saturate(.8) brightness(.8) contrast(1.05)' } },
+      // black-and-white selfie, warm-tinted like an old photo
+      { img: beginningImg, style: { backgroundPosition: '77% 40%', filter: 'sepia(.45) brightness(.78) contrast(1.08)' } },
+    ],
   },
   {
-    // the real proposal photo: sunny beach — framed on both of them and toned down to sit between the dark winter shots
-    img: proposalImg,
     n: 'II',
     text: 'Зимой прозвучало предложение',
-    style: { backgroundPosition: '52% 60%', filter: 'sepia(.2) saturate(.9) brightness(.78) contrast(1.05)' },
+    slides: [
+      { img: proposalImg, style: { backgroundPosition: '52% 60%', filter: 'sepia(.2) saturate(.9) brightness(.78) contrast(1.05)' } },
+      // TODO: proposal video (5–6s) — { video: proposalVideo, style: { objectPosition: '50% 50%', filter: '…' } }
+    ],
   },
   {
-    // the two of them together — toned like the proposal photo so the strip reads as one
-    img: familyImg,
     n: 'III',
     text: 'Зимой мы станем семьёй',
-    style: { backgroundPosition: '42% 22%', filter: 'sepia(.22) saturate(.85) brightness(.74) contrast(1.05)' },
+    slides: [
+      { img: familyImg, style: { backgroundPosition: '42% 22%', filter: 'sepia(.22) saturate(.85) brightness(.74) contrast(1.05)' } },
+      // aquarium dinner: zoomed in on the two of them
+      { img: aquariumImg, style: { backgroundSize: 'auto 140%', backgroundPosition: '49% 85%', filter: 'sepia(.3) saturate(.85) brightness(.82) contrast(1.05)' } },
+    ],
   },
 ]
 
@@ -134,7 +144,7 @@ export default function CandlesEvening() {
     Promise.race([Promise.all([fonts, load(coupleImg), load(candlesImg)]), timeout]).then(() => {
       if (!alive) return
       setReady(true)
-      ;[windowImg, beginningImg, proposalImg, familyImg, townImg, tableImg].forEach((src) => (new Image().src = src))
+      ;[windowImg, diplomasImg, beginningImg, proposalImg, familyImg, aquariumImg, townImg, tableImg].forEach((src) => (new Image().src = src))
     })
     return () => {
       alive = false
@@ -273,14 +283,7 @@ export default function CandlesEvening() {
         </div>
         <div className="cd-winters">
           {WINTERS.map((w, i) => (
-            <div key={w.n} className="cd-winter-card">
-              <div className="cd-winter-img" style={{ backgroundImage: `url(${w.img})`, ...w.style }} />
-              <div className={i === 2 ? 'cd-winter-caption is-italic' : 'cd-winter-caption'}>
-                <span>{w.n}</span>
-                <br />
-                {w.text}
-              </div>
-            </div>
+            <StoryCard key={w.n} {...w} italic={i === 2} active={scene === 2} offset={i * 2000} reduced={reduced} />
           ))}
         </div>
         <button className="cd-page-next pulse-slow" onClick={() => go(3)} tabIndex={tab(2)}>
