@@ -49,26 +49,23 @@ function save(form: RsvpForm) {
   }
 }
 
-/**
- * Sends the answer to VITE_RSVP_ENDPOINT — the Google Apps Script web app that writes it to the Google Sheet
- * (see google-sheets/rsvp.gs). Sent as text/plain to avoid a CORS preflight. Without an endpoint it is simulated.
- */
+// Google Apps Script web app that writes answers to the Google Sheet (see google-sheets/rsvp.gs).
+// Not a secret — it ends up in the public site code either way; it can only add a row to the sheet.
+// VITE_RSVP_ENDPOINT overrides it (e.g. a copy of the sheet for testing).
+const RSVP_ENDPOINT =
+  (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined) ||
+  'https://script.google.com/macros/s/AKfycbz0EE8GlFamszqR1PePLyGHADTagBQtz0-RuQWCfpCZEVLj67QADOKmS20xoSfbg3w/exec'
+
+/** Sends the answer to the sheet. Sent as text/plain to avoid a CORS preflight. */
 export async function submitRsvp(form: RsvpForm): Promise<void> {
-  const endpoint = import.meta.env.VITE_RSVP_ENDPOINT as string | undefined
   const payload = { ...form, name: form.name.trim(), id: guestId(), submittedAt: new Date().toISOString() }
-  if (endpoint) {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-    })
-    // Apps Script answers 200 with an HTML page on its own errors, so check the script's reply too
-    const reply = res.ok ? await res.json().catch(() => null) : null
-    if (!reply?.ok) throw new Error(`RSVP not saved (HTTP ${res.status})`)
-  } else {
-    await new Promise((r) => setTimeout(r, 900))
-    if (!navigator.onLine) throw new Error('offline')
-    console.info('[rsvp] VITE_RSVP_ENDPOINT is not set — simulated submit', payload)
-  }
+  const res = await fetch(RSVP_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+  })
+  // Apps Script answers 200 with an HTML page on its own errors, so check the script's reply too
+  const reply = res.ok ? await res.json().catch(() => null) : null
+  if (!reply?.ok) throw new Error(`RSVP not saved (HTTP ${res.status})`)
   save(form)
 }
