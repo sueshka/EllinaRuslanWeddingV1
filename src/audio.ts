@@ -1,6 +1,5 @@
-// Sound for the templates. One background song (loops, keeps playing across templates),
-// the candle-lighting sound for «Вечер при свечах» and a short wind intro for «Зимняя сказка».
-// Browsers only allow sound after a tap, so it starts from one (see App); back on the main screen it all stops.
+// Sound: one background song (loops) and the candle-lighting sound.
+// Browsers only allow sound after a tap, so it starts from one (see App).
 
 import { useSyncExternalStore } from 'react'
 import musicUrl from './assets/misc/music.MP3'
@@ -27,11 +26,8 @@ let ctx: AudioContext | null = null
 let master: GainNode | null = null
 let musicGain: GainNode | null = null
 let candleBuf: AudioBuffer | null = null
-let windStarted = false
 let muted = false
 let resumeOnShow = false
-// wind / candle sources, so they can be stopped when the guest leaves the template
-let sources: AudioScheduledSourceNode[] = []
 
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((l) => l())
@@ -57,7 +53,7 @@ export function unlockAudio() {
   if (document.hidden) return
   if (ctx.state === 'suspended') ctx.resume().catch(() => {})
   if (music.paused) {
-    // from the start of the song — fade in
+    // first start — fade in
     if (music.currentTime === 0 && musicGain) {
       musicGain.gain.cancelScheduledValues(ctx.currentTime)
       musicGain.gain.setValueAtTime(0, ctx.currentTime)
@@ -65,22 +61,6 @@ export function unlockAudio() {
     }
     music.play().catch(() => {})
   }
-}
-
-/** Back on the main screen: silence everything; the song starts over when a template is chosen again. */
-export function stopAllSound() {
-  music.pause()
-  music.currentTime = 0
-  resumeOnShow = false
-  sources.forEach((s) => {
-    try {
-      s.stop()
-    } catch {
-      /* already stopped */
-    }
-  })
-  sources = []
-  windStarted = false
 }
 
 /** The candle catching fire — played on the candle tap, together with the flash animation. */
@@ -107,44 +87,7 @@ export function playCandleSound() {
     g.gain.linearRampToValueAtTime(0, t + dur)
     src.connect(g).connect(out)
     src.start(t, CANDLE_OFFSET, dur)
-    sources.push(src)
   })
-}
-
-/** «Зимняя сказка»: a few seconds of wind as the book opens, then only a faint trace under the song. */
-export function startWind() {
-  unlockAudio()
-  if (!ctx || !master || windStarted) return
-  windStarted = true
-  const t0 = ctx.currentTime
-  const len = ctx.sampleRate * 4
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate)
-  const d = buf.getChannelData(0)
-  let last = 0
-  for (let i = 0; i < len; i++) {
-    last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02
-    d[i] = last * 3.5
-  }
-  const src = ctx.createBufferSource()
-  src.buffer = buf
-  src.loop = true
-  const bp = ctx.createBiquadFilter()
-  bp.type = 'bandpass'
-  bp.frequency.value = 420
-  bp.Q.value = 0.6
-  const wg = ctx.createGain()
-  wg.gain.setValueAtTime(0, t0)
-  wg.gain.linearRampToValueAtTime(0.16, t0 + 3)
-  wg.gain.setTargetAtTime(0.03, t0 + 6, 1.5)
-  const lfo = ctx.createOscillator()
-  lfo.frequency.value = 0.07
-  const lg = ctx.createGain()
-  lg.gain.value = 180
-  lfo.connect(lg).connect(bp.frequency)
-  src.connect(bp).connect(wg).connect(master)
-  src.start()
-  lfo.start()
-  sources.push(src, lfo)
 }
 
 function setOn(on: boolean) {

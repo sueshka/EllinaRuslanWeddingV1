@@ -8,10 +8,10 @@ import familyImg from './assets/family.jpg'
 import townImg from './assets/candles/town.jpg'
 import tableImg from './assets/candles/table.jpg'
 import Snow from './Snow'
-import { RsvpPanel } from './RsvpSheet'
+import RsvpForm from './RsvpForm'
 import { playCandleSound, toggleSound, unlockAudio, useSoundOn } from './audio'
-import { VENUE_1, VENUE_2, countdown, routeUrl } from './event'
-import { loadSaved, submitRsvp, type RsvpForm, type Status } from './rsvp'
+import { DINNER, REGISTRATION, calendarHref, countdown, opensInNewTab, routeHref } from './event'
+import { loadSaved, submitRsvp, type RsvpForm as Form, type Status } from './rsvp'
 import { isTyping, useReducedMotion, useSceneGestures } from './nav'
 
 type Scene = 0 | 1 | 2 | 3 | 4
@@ -87,9 +87,21 @@ const WINTERS: { img: string; n: string; text: string; style?: CSSProperties }[]
 ]
 
 const EVENTS = [
-  { time: '14:30', script: 'Станем семьёй', kind: 'ТОРЖЕСТВЕННАЯ РЕГИСТРАЦИЯ', place: 'Гостиница «Националь», зал «Суздаль»', address: 'Москва, ул. Моховая, д. 15/1, стр. 1', full: VENUE_1 },
-  { time: '16:00', script: 'За одним столом', kind: 'СЕМЕЙНЫЙ УЖИН', place: 'Усадьба Милютина, зал «Версаль»', address: 'Москва, Милютинский пер., д. 14, стр. 1', full: VENUE_2 },
+  { time: '14:30', script: 'Станем семьёй', kind: 'ТОРЖЕСТВЕННАЯ РЕГИСТРАЦИЯ', place: 'Гостиница «Националь», зал «Суздаль»', address: 'Москва, ул. Моховая, д. 15/1, стр. 1', event: REGISTRATION },
+  { time: '16:00', script: 'За одним столом', kind: 'СЕМЕЙНЫЙ УЖИН', place: 'Усадьба Милютина, зал «Версаль»', address: 'Москва, Милютинский пер., д. 14, стр. 1', event: DINNER },
 ]
+
+/** Map / calendar link: web links open in a new tab, .ics files and Android app links in place */
+const ActionLink = ({ href, tabIndex, children }: { href: string; tabIndex: number; children: string }) =>
+  opensInNewTab(href) ? (
+    <a href={href} target="_blank" rel="noreferrer" tabIndex={tabIndex}>
+      {children}
+    </a>
+  ) : (
+    <a href={href} tabIndex={tabIndex}>
+      {children}
+    </a>
+  )
 
 export default function CandlesEvening() {
   const reduced = useReducedMotion()
@@ -97,8 +109,7 @@ export default function CandlesEvening() {
   const [scene, setScene] = useState<Scene>(0)
   const [opening, setOpening] = useState(false)
   const sound = useSoundOn()
-  const [copied, setCopied] = useState(false)
-  const [form, setForm] = useState<RsvpForm>(() => loadSaved() ?? { name: '', attend: 'both' })
+  const [form, setForm] = useState<Form>(() => loadSaved() ?? { name: '', attend: 'both' })
   const [status, setStatus] = useState<Status>(() => (loadSaved() ? 'success' : 'idle'))
 
   const timers = useRef<number[]>([])
@@ -168,11 +179,6 @@ export default function CandlesEvening() {
     () => pages.current[scene] ?? null,
   )
 
-  const copy = (text: string) => {
-    navigator.clipboard?.writeText(text).catch(() => {})
-    setCopied(true)
-    timers.current.push(window.setTimeout(() => setCopied(false), 1800))
-  }
 
   const submit = async () => {
     setStatus('sending')
@@ -303,12 +309,12 @@ export default function CandlesEvening() {
                 <span>{ev.address}</span>
               </div>
               <div className="cd-actions">
-                <a href={routeUrl(ev.full)} target="_blank" rel="noreferrer" tabIndex={tab(3)}>
+                <ActionLink href={routeHref(ev.event)} tabIndex={tab(3)}>
                   МАРШРУТ
-                </a>
-                <button type="button" onClick={() => copy(ev.full)} tabIndex={tab(3)}>
-                  КОПИРОВАТЬ
-                </button>
+                </ActionLink>
+                <ActionLink href={calendarHref(ev.event)} tabIndex={tab(3)}>
+                  В КАЛЕНДАРЬ
+                </ActionLink>
               </div>
             </div>
           </Fragment>
@@ -334,7 +340,7 @@ export default function CandlesEvening() {
         </div>
         <div className="cd-rsvp">
           <h2 className="cd-script cd-rsvp-title">Будете рядом?</h2>
-          <RsvpPanel variant="dark" thanks className="rsvp-inline" form={form} status={status} onChange={setForm} onSubmit={submit} />
+          <RsvpForm form={form} status={status} onChange={setForm} onSubmit={submit} />
         </div>
       </section>
 
@@ -361,12 +367,6 @@ export default function CandlesEvening() {
       )}
 
       {opening && <div className="cd-flare" aria-hidden />}
-
-      {copied && (
-        <div className="cd-toast" role="status">
-          Адрес скопирован
-        </div>
-      )}
     </main>
   )
 }

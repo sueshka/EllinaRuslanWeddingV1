@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Ruslan & Ellina//Invitation//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:dinner@ruslan-ellina-2026
+DTSTAMP:20261001T000000Z
+DTSTART:20261226T130000Z
+DTEND:20261226T180000Z
+SUMMARY:Семейный ужин · Руслан & Эллина
+LOCATION:Усадьба Милютина\, зал «Версаль»\, Москва\, Милютинский пер.\, д. 14\, стр. 1
+DESCRIPTION:Ждём вас! Руслан и Эллина
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Сегодня свадьба Руслана и Эллины
+TRIGGER:-PT3H
+END:VALARM
+END:VEVENT
+END:VCALENDAR
