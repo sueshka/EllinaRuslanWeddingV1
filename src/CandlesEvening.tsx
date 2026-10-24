@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties 
 import candlesImg from './assets/candles/candles.jpg'
 import coupleImg from './assets/couple.jpg'
 import windowImg from './assets/candles/window.jpg'
-import streetImg from './assets/candles/street.jpg'
+import beginningImg from './assets/beginning.jpg'
 import proposalImg from './assets/proposal.jpg'
 import familyImg from './assets/family.jpg'
 import townImg from './assets/candles/town.jpg'
@@ -69,7 +69,13 @@ const Candle = () => (
 )
 
 const WINTERS: { img: string; n: string; text: string; style?: CSSProperties }[] = [
-  { img: streetImg, n: 'I', text: 'Зимой началась наша история' },
+  {
+    // black-and-white selfie: framed on both faces, warm-tinted like an old photo to sit with the other two
+    img: beginningImg,
+    n: 'I',
+    text: 'Зимой началась наша история',
+    style: { backgroundPosition: '77% 40%', filter: 'sepia(.45) brightness(.78) contrast(1.08)' },
+  },
   {
     // the real proposal photo: sunny beach — framed on both of them and toned down to sit between the dark winter shots
     img: proposalImg,
@@ -128,7 +134,7 @@ export default function CandlesEvening() {
     Promise.race([Promise.all([fonts, load(coupleImg), load(candlesImg)]), timeout]).then(() => {
       if (!alive) return
       setReady(true)
-      ;[windowImg, streetImg, proposalImg, familyImg, townImg, tableImg].forEach((src) => (new Image().src = src))
+      ;[windowImg, beginningImg, proposalImg, familyImg, townImg, tableImg].forEach((src) => (new Image().src = src))
     })
     return () => {
       alive = false
