@@ -354,6 +354,7 @@ export default function CandlesEvening() {
           <h2 className="cd-script cd-rsvp-title">Будете рядом?</h2>
           <RsvpForm form={form} status={status} onChange={setForm} onSubmit={submit} />
         </div>
+        <footer className="cd-credit">developed by sueshka</footer>
       </section>
 
       {/* persistent navigation; on scrollable pages a dark band keeps it readable over the content */}

@@ -823,3 +823,13 @@ button {
   font: 600 12px var(--manrope);
   letter-spacing: 0.16em;
 }
+
+/* footer at the end of the last page */
+.cd-credit {
+  margin-top: auto;
+  padding: 8px 0 18px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: rgba(191, 178, 166, 0.5);
+}

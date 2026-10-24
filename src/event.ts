@@ -34,6 +34,10 @@ const ua = navigator.userAgent
 const isAndroid = /Android/i.test(ua)
 // iPhone / iPad (iPadOS reports itself as a Mac with touch) and Mac Safari open .ics in Apple Calendar
 const isApple = /iPhone|iPad|iPod|Macintosh/i.test(ua)
+const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+// Only real Safari hands a .ics to Calendar; Chrome/Firefox/Yandex on iPhone and in-app browsers
+// (Instagram, Facebook, VK, Google app…) offer to save it to Files instead
+const isIOSSafari = isIOS && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser|GSA|Instagram|FBAN|FBAV|VKClient|Line\/|Telegram/i.test(ua)
 
 const enc = encodeURIComponent
 
@@ -53,11 +57,14 @@ export function routeHref(e: WeddingEvent) {
 
 /**
  * "Add to calendar" link.
- * iPhone / Mac: a static .ics file — Safari shows the system "Add to Calendar" sheet.
+ * iPhone Safari / Mac: a static .ics file — Safari shows the system "Add to Calendar" sheet.
+ * Other iPhone browsers: the same file via webcal:// — iOS hands it to the Calendar app itself.
  * Android and the rest: Google Calendar with the event filled in (opens the app on Android).
  */
 export function calendarHref(e: WeddingEvent) {
-  if (isApple) return `${import.meta.env.BASE_URL}calendar/${e.id}.ics`
+  const ics = `${import.meta.env.BASE_URL}calendar/${e.id}.ics`
+  if (isIOS && !isIOSSafari) return `webcal://${location.host}${ics}`
+  if (isApple) return ics
   return (
     'https://calendar.google.com/calendar/render?action=TEMPLATE' +
     `&text=${enc(e.title)}&dates=${e.start}/${e.end}&location=${enc(e.location)}` +
