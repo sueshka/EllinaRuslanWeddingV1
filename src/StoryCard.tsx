@@ -57,7 +57,7 @@ export default function StoryCard({ n, text, italic, slides, active, offset, red
             src={s.video}
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             onEnded={next}
             aria-hidden
           />

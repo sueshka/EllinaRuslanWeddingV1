@@ -3,3 +3,6 @@ dist
 .env
 .env.local
 .DS_Store
+
+# original phone videos — too heavy for git; the site uses the converted src/assets/*.mp4
+src/assets/*.MOV

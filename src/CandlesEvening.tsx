@@ -6,6 +6,7 @@ import beginningImg from './assets/beginning.jpg'
 import diplomasImg from './assets/diplomas.jpg'
 import aquariumImg from './assets/aquarium.jpg'
 import proposalImg from './assets/proposal.jpg'
+import proposalVideo from './assets/proposal.mp4'
 import familyImg from './assets/family.jpg'
 import townImg from './assets/candles/town.jpg'
 import tableImg from './assets/candles/table.jpg'
@@ -88,7 +89,8 @@ const WINTERS: { n: string; text: string; slides: Slide[] }[] = [
     text: 'Зимой прозвучало предложение',
     slides: [
       { img: proposalImg, style: { backgroundPosition: '52% 60%', filter: 'sepia(.2) saturate(.9) brightness(.78) contrast(1.05)' } },
-      // TODO: proposal video (5–6s) — { video: proposalVideo, style: { objectPosition: '50% 50%', filter: '…' } }
+      // walk on the beach at sunset (first 6s of IMG_5415): zoomed in and lifted above the caption
+      { video: proposalVideo, style: { scale: '1.6', translate: '-8% -14%', transformOrigin: '65% 62%', filter: 'saturate(.9) brightness(.85)' } },
     ],
   },
   {
